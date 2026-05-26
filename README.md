@@ -44,6 +44,8 @@ After pushing to `main`, GitHub Actions deploys the app automatically.
 2. **Build and deployment** → Source: **GitHub Actions**
 3. Wait for the **Deploy to GitHub Pages** workflow to finish (Actions tab)
 
+**Site blank or 404 after making the repo private then public?** See [docs/GITHUB_PAGES_FIX.md](docs/GITHUB_PAGES_FIX.md) and re-run the deploy workflow.
+
 Share that HTTPS link with clients for phone/laptop testing. Data stays in each device’s browser until a backend is added.
 
 ## Demo tips

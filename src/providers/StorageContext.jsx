@@ -12,6 +12,7 @@ import { createDashboardService } from '../services/dashboardService';
 import { createReportService } from '../services/reportService';
 import { createBackupService } from '../services/backupService';
 import { runSeedIfNeeded } from '../db/seed';
+import { SJM_IMAGES } from '../utils/branding';
 
 const StorageContext = createContext(null);
 
@@ -97,7 +98,7 @@ export function StorageProvider({ children }) {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <img
-            src={`${import.meta.env.BASE_URL}sjm-logo.jpg`}
+            src={SJM_IMAGES.logo}
             alt=""
             className="mx-auto h-16 w-16 rounded-full border-2 border-emerald-700 object-cover"
           />

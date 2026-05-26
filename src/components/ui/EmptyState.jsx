@@ -22,6 +22,3 @@ export function EmptyState({ message, icon = '📋', image }) {
   );
 }
 
-export function emptyStateCampusImage() {
-  return SJM_IMAGES.campus;
-}

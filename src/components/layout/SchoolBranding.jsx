@@ -15,13 +15,9 @@ export function SchoolBranding({
   const content = (
     <div className={`flex items-center gap-3 ${className}`}>
       <img
-        src={`${import.meta.env.BASE_URL}sjm-logo.jpg`}
+        src={SJM_IMAGES.logo}
         alt="Mugalkhod Jidaga Math logo"
         className={`${logoClass} shrink-0 rounded-full border-2 border-emerald-700 object-cover`}
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = SJM_IMAGES.logo;
-        }}
       />
       <div className="min-w-0 text-left">
         <p className={`${titleClass} leading-tight text-slate-800`}>

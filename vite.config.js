@@ -13,7 +13,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'sjm-logo.jpg'],
+      includeAssets: ['favicon.svg', 'sjm-logo.jpg', 'images/sjm/**/*'],
       manifest: {
         name: 'Shivayogi Jnana Mandira Health',
         short_name: 'SJM Health',

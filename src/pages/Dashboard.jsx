@@ -5,6 +5,8 @@ import { Card } from '../components/ui/Card';
 import { SeverityBadge } from '../components/ui/SeverityBadge';
 import { formatDisplayDate } from '../utils/dateHelpers';
 import { SEVERITY } from '../utils/constants';
+import { SchoolHeroBanner } from '../components/layout/SchoolBranding';
+import { SJM_IMAGES } from '../utils/branding';
 
 export function Dashboard() {
   const { dashboardService } = useStorage();
@@ -18,7 +20,24 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <SchoolHeroBanner />
       <h1 className="text-2xl font-bold">Dashboard</h1>
+
+      <div className="grid grid-cols-3 gap-2 overflow-hidden rounded-xl border border-slate-200 md:gap-3">
+        {[
+          { src: SJM_IMAGES.meals, alt: 'Community meals at SJM' },
+          { src: SJM_IMAGES.activities, alt: 'Yoga and activities' },
+          { src: SJM_IMAGES.cultural, alt: 'Cultural programs' },
+        ].map(({ src, alt }) => (
+          <img
+            key={src}
+            src={src}
+            alt={alt}
+            className="h-20 w-full object-cover md:h-24"
+            loading="lazy"
+          />
+        ))}
+      </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[

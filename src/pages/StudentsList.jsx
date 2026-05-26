@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useStorage } from '../providers/StorageContext';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { SJM_IMAGES } from '../utils/branding';
 
 const statusColors = {
   healthy: 'bg-healthy-light text-healthy',
@@ -47,7 +48,10 @@ export function StudentsList() {
       {loading ? (
         <p className="text-slate-500">Loading…</p>
       ) : filtered.length === 0 ? (
-        <EmptyState message="No students yet. Record a visit to add one." />
+        <EmptyState
+          message="No students yet. Record a visit to add one."
+          image={SJM_IMAGES.campus}
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((s) => (

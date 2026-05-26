@@ -96,7 +96,12 @@ export function StorageProvider({ children }) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <img
+            src={`${import.meta.env.BASE_URL}sjm-logo.jpg`}
+            alt=""
+            className="mx-auto h-16 w-16 rounded-full border-2 border-emerald-700 object-cover"
+          />
+          <div className="mx-auto mt-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           <p className="mt-4 text-slate-600">Loading health records…</p>
         </div>
       </div>

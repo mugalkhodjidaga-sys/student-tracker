@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import { useStorage } from '../providers/StorageContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { SCHOOL_NAME } from '../utils/constants';
+import { SchoolBranding } from '../components/layout/SchoolBranding';
+import { SJM_WEBSITE_URL } from '../utils/branding';
 
 export function Settings() {
   const { backupService } = useStorage();
@@ -55,8 +56,16 @@ export function Settings() {
       <h1 className="text-2xl font-bold">Settings</h1>
 
       <Card title="School">
-        <p className="text-lg font-medium">{SCHOOL_NAME}</p>
-        <p className="text-sm text-slate-500">Single school mode (v1)</p>
+        <SchoolBranding size="lg" showTagline />
+        <a
+          href={SJM_WEBSITE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
+        >
+          Visit official SJM website →
+        </a>
+        <p className="mt-2 text-sm text-slate-500">Single school mode (v1)</p>
       </Card>
 
       <Card title="Backup & restore">

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { SCHOOL_NAME } from '../../utils/constants';
+import { SchoolBranding } from './SchoolBranding';
 
 const links = [
   { to: '/', label: 'Record Visit', icon: '➕' },
@@ -14,12 +14,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-slate-200 md:bg-white md:fixed md:inset-y-0 md:left-0">
       <div className="border-b border-slate-200 p-5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-          Health Tracker
-        </p>
-        <p className="mt-1 text-sm font-medium leading-tight text-slate-800">
-          {SCHOOL_NAME}
-        </p>
+        <SchoolBranding showTagline showLink size="md" />
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {links.map(({ to, label, icon }) => (

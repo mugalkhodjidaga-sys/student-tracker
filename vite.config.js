@@ -13,10 +13,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'sjm-logo.jpg'],
       manifest: {
-        name: 'Shivayogi Jnana Mandir Health',
-        short_name: 'Health Tracker',
+        name: 'Shivayogi Jnana Mandira Health',
+        short_name: 'SJM Health',
         description: 'Offline health records for residential school',
         theme_color: '#059669',
         background_color: '#f8fafc',
@@ -24,9 +24,9 @@ export default defineConfig({
         start_url: `${base}`,
         icons: [
           {
-            src: '/favicon.svg',
+            src: `${base}sjm-logo.jpg`,
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/jpeg',
           },
         ],
       },

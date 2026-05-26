@@ -4,8 +4,8 @@ import {
   BLOOD_GROUPS,
   GENDER_OPTIONS,
   SEVERITY_OPTIONS,
-  SCHOOL_NAME,
 } from '../../utils/constants';
+import { SchoolBranding } from '../layout/SchoolBranding';
 import { toDateInputValue } from '../../utils/dateHelpers';
 import { useVisitEntry } from '../../hooks/useVisitEntry';
 import { useStudentHistory } from '../../hooks/useStudentHistory';
@@ -129,10 +129,12 @@ export function RecordVisitForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-6">
-      <header className="text-center md:text-left">
-        <p className="text-sm font-medium text-primary">{SCHOOL_NAME}</p>
-        <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Record Visit</h1>
-        <p className="mt-1 text-slate-600">Log student health visit and treatment</p>
+      <header className="space-y-4 text-center md:text-left">
+        <SchoolBranding size="lg" showTagline className="justify-center md:justify-start" />
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Record Visit</h1>
+          <p className="mt-1 text-slate-600">Log student health visit and treatment</p>
+        </div>
       </header>
 
       <Card title="1. Find student">

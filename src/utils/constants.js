@@ -1,5 +1,7 @@
 export const SCHOOL_ID = 'shivayogi-jnana-mandir';
-export const SCHOOL_NAME = 'Shivayogi Jnana Mandir';
+export const SCHOOL_NAME = 'Shivayogi Jnana Mandira';
+export const SCHOOL_TAGLINE =
+  'Free residential education — Divine Charitable Trust';
 
 export const SEVERITY = {
   NORMAL: 'Normal',

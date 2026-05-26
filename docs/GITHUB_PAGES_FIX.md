@@ -1,6 +1,6 @@
 # GitHub Pages not loading after private → public
 
-If https://mugalkhodjidaga-sys.github.io/student-tracker/ shows 404, do these steps **once** on GitHub:
+If https://mugalkhodjidaga-sys.github.io/student-tracker/ shows 404, do these steps on GitHub (the deploy workflow must pass first):
 
 ## Step 1 — Re-enable Pages
 

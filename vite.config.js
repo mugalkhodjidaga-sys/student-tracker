@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// GitHub Pages project site: https://mugalkhodjidaga-sys.github.io/student-tracker/
+const base = '/student-tracker/';
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     tailwindcss(),
@@ -17,7 +21,7 @@ export default defineConfig({
         theme_color: '#059669',
         background_color: '#f8fafc',
         display: 'standalone',
-        start_url: '/',
+        start_url: `${base}`,
         icons: [
           {
             src: '/favicon.svg',

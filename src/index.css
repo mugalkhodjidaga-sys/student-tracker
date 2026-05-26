@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-healthy: #16a34a;
+  --color-healthy-light: #dcfce7;
+  --color-medium: #d97706;
+  --color-medium-light: #fef3c7;
+  --color-urgent: #dc2626;
+  --color-urgent-light: #fee2e2;
+  --color-primary: #059669;
+  --color-primary-dark: #047857;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.dark body {
+  @apply bg-slate-900 text-slate-100;
+}
+
+input,
+select,
+textarea,
+button {
+  font-size: 16px;
+}

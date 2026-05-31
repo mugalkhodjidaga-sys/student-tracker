@@ -1,9 +1,9 @@
 node_modules
 dist
 dist-ssr
-*.local
-.DS_Store
-.env
-.env.*
-client_secret*.json
-**/client_secret*.json
+# *.local
+# .DS_Store
+# .env
+# .env.*
+# client_secret*.json
+# **/client_secret*.json

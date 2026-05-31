@@ -2,6 +2,12 @@ import { Link } from 'react-router-dom';
 import { Modal } from '../ui/Modal';
 import { SeverityBadge } from '../ui/SeverityBadge';
 import { formatDisplayDate } from '../../utils/dateHelpers';
+import {
+  formatScheduleDisplay,
+  formatDoseDisplay,
+  formatFoodTiming,
+  normalizeSchedule,
+} from '../../utils/medicineHelpers';
 
 function DetailRow({ label, value }) {
   if (!value) return null;
@@ -20,17 +26,10 @@ export function VisitDetailModal({ visit, open, onClose }) {
 
   const student = visit.student;
   const med = visit.medicine;
-  const schedule = med?.schedule;
-
-  const scheduleText = schedule
-    ? [
-        schedule.morning && 'Morning',
-        schedule.afternoon && 'Afternoon',
-        schedule.night && 'Night',
-      ]
-        .filter(Boolean)
-        .join(', ') || '—'
-    : null;
+  const dose =
+    med?.doseAmount && med?.doseUnit
+      ? formatDoseDisplay(med.doseAmount, med.doseUnit)
+      : med?.treatmentDoses;
 
   return (
     <Modal open={open} onClose={onClose} title="Visit details" wide>
@@ -67,11 +66,21 @@ export function VisitDetailModal({ visit, open, onClose }) {
         <DetailRow label="Symptoms" value={visit.symptoms} />
         {med && (
           <>
-            <DetailRow label="Medicine given" value={med.medicineGiven} />
-            <DetailRow label="Treatment / doses" value={med.treatmentDoses} />
-            <DetailRow label="Schedule" value={scheduleText} />
-            {med.ingestionNotes && (
-              <DetailRow label="Ingestion notes" value={med.ingestionNotes} />
+            <DetailRow label="Medicine" value={med.medicineGiven} />
+            <DetailRow label="Dose" value={dose} />
+            <DetailRow
+              label="Schedule"
+              value={formatScheduleDisplay(normalizeSchedule(med.schedule))}
+            />
+            <DetailRow
+              label="With food"
+              value={formatFoodTiming(med.foodTiming) || med.ingestionNotes}
+            />
+            {(med.medicineNotes || med.ingestionNotes) && (
+              <DetailRow
+                label="Notes"
+                value={med.medicineNotes || med.ingestionNotes}
+              />
             )}
           </>
         )}
@@ -85,7 +94,7 @@ export function VisitDetailModal({ visit, open, onClose }) {
         {visit.oxygenLevel && (
           <DetailRow label="Oxygen level" value={visit.oxygenLevel} />
         )}
-        {visit.notes && <DetailRow label="Notes" value={visit.notes} />}
+        {visit.notes && <DetailRow label="Visit notes" value={visit.notes} />}
       </dl>
 
       {student && (

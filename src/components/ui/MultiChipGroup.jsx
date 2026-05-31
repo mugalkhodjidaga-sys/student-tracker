@@ -1,6 +1,8 @@
 /**
  * Multi-select chips — toggles items in/out of selection array.
  */
+export { parseIssueSelection, joinIssueSelection } from '../../utils/issueHelpers';
+
 export function MultiChipGroup({ chips, selected = [], onChange }) {
   function toggle(chip) {
     const set = new Set(selected);
@@ -37,15 +39,3 @@ export function MultiChipGroup({ chips, selected = [], onChange }) {
   );
 }
 
-/** Parse "Fever, Cough" into ["Fever","Cough"] matching known chips + extras */
-export function parseIssueSelection(issueType, chips) {
-  if (!issueType?.trim()) return [];
-  const parts = issueType.split(',').map((s) => s.trim()).filter(Boolean);
-  const known = parts.filter((p) => chips.includes(p));
-  const extra = parts.filter((p) => !chips.includes(p));
-  return [...known, ...extra];
-}
-
-export function joinIssueSelection(selected) {
-  return selected.filter(Boolean).join(', ');
-}

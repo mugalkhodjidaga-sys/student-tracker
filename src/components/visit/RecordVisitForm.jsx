@@ -17,8 +17,11 @@ import { Button } from '../ui/Button';
 import { StudentLookup } from './StudentLookup';
 import { StudentPrefillCard } from './StudentPrefillCard';
 import { VisitHistoryPanel } from './VisitHistoryPanel';
-import { IssueTypeChips } from './IssueTypeChips';
-import { MedicineScheduleCheckboxes } from './MedicineScheduleCheckboxes';
+import { IssueTypeSelector } from './IssueTypeSelector';
+import {
+  TreatmentSection,
+  emptyTreatmentFields,
+} from '../medicine/TreatmentSection';
 
 const emptyForm = () => ({
   localId: null,
@@ -36,12 +39,8 @@ const emptyForm = () => ({
   issueType: '',
   symptoms: '',
   severity: 'Normal',
-  medicineGiven: '',
-  treatmentDoses: '',
-  schedule: { morning: false, afternoon: false, night: false },
-  ingestionNotes: '',
-  treatedBy: '',
-  notes: '',
+  ...emptyTreatmentFields(),
+  recordNotes: '',
   temperature: '',
   bloodPressure: '',
   oxygenLevel: '',
@@ -232,23 +231,13 @@ export function RecordVisitForm() {
             onChange={(e) => update('visitDate', e.target.value)}
             error={errors.visitDate}
           />
-          <div>
-            <Input
-              label="Type of issue *"
-              placeholder="Fever, cough, injury…"
-              value={form.issueType}
-              onChange={(e) => update('issueType', e.target.value)}
-              error={errors.issueType}
-            />
-            <div className="mt-3">
-              <IssueTypeChips
-                value={form.issueType}
-                onChange={(v) => update('issueType', v)}
-              />
-            </div>
-          </div>
+          <IssueTypeSelector
+            value={form.issueType}
+            onChange={(v) => update('issueType', v)}
+            error={errors.issueType}
+          />
           <Textarea
-            label="Symptoms *"
+            label="Investigation / symptoms *"
             placeholder="Describe what happened…"
             value={form.symptoms}
             onChange={(e) => update('symptoms', e.target.value)}
@@ -295,39 +284,7 @@ export function RecordVisitForm() {
       </Card>
 
       <Card title="3. Treatment">
-        <div className="space-y-4">
-          <Input
-            label="Medicine given *"
-            placeholder="e.g. Paracetamol 500mg"
-            value={form.medicineGiven}
-            onChange={(e) => update('medicineGiven', e.target.value)}
-            error={errors.medicineGiven}
-          />
-          <Textarea
-            label="Treatment / doses *"
-            placeholder="e.g. 1 tablet after food, twice daily"
-            value={form.treatmentDoses}
-            onChange={(e) => update('treatmentDoses', e.target.value)}
-            error={errors.treatmentDoses}
-          />
-          <MedicineScheduleCheckboxes
-            schedule={form.schedule}
-            onChange={(s) => update('schedule', s)}
-            error={errors.schedule}
-          />
-          <Input
-            label="Ingestion notes (optional)"
-            placeholder="e.g. after food, with water"
-            value={form.ingestionNotes}
-            onChange={(e) => update('ingestionNotes', e.target.value)}
-          />
-          <Input
-            label="Treated by"
-            placeholder="Caretaker or doctor name"
-            value={form.treatedBy}
-            onChange={(e) => update('treatedBy', e.target.value)}
-          />
-        </div>
+        <TreatmentSection form={form} update={update} errors={errors} />
       </Card>
 
       {errors.form && (

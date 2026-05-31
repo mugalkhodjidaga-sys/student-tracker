@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { SeverityBadge } from '../ui/SeverityBadge';
 import { formatDisplayDate } from '../../utils/dateHelpers';
+import { buildTreatmentSummary } from '../../utils/medicineHelpers';
 
 export function VisitHistoryItem({ visit }) {
   const [expanded, setExpanded] = useState(false);
   const med = visit.medicine;
+  const summary = buildTreatmentSummary(med);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -18,34 +20,25 @@ export function VisitHistoryItem({ visit }) {
             {formatDisplayDate(visit.visitDate)} — {visit.issueType}
           </p>
           <p className="truncate text-sm text-slate-600">{visit.symptoms}</p>
-          {med && (
-            <p className="truncate text-sm text-slate-500">
-              {med.medicineGiven}
-            </p>
+          {summary && (
+            <p className="truncate text-sm text-slate-500">{summary}</p>
           )}
         </div>
         <SeverityBadge severity={visit.severity} />
       </button>
 
-      {expanded && (
+      {expanded && med && (
         <div className="mt-3 space-y-2 border-t border-slate-200 pt-3 text-sm text-slate-600">
           <p>
             <strong>Symptoms:</strong> {visit.symptoms}
           </p>
-          {med && (
-            <>
-              <p>
-                <strong>Medicine:</strong> {med.medicineGiven}
-              </p>
-              <p>
-                <strong>Doses:</strong> {med.treatmentDoses}
-              </p>
-              {med.ingestionNotes && (
-                <p>
-                  <strong>Notes:</strong> {med.ingestionNotes}
-                </p>
-              )}
-            </>
+          <p>
+            <strong>Medicine:</strong> {med.medicineGiven}
+          </p>
+          {med.treatmentDoses && (
+            <p>
+              <strong>Dose:</strong> {med.treatmentDoses}
+            </p>
           )}
           {visit.treatedBy && (
             <p>

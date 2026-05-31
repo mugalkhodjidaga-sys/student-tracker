@@ -1,3 +1,9 @@
+import { FOOD_TIMING, SCHEDULE_PRESETS } from './constants';
+import {
+  hasAnyScheduleSlot,
+  formatDoseDisplay,
+} from './medicineHelpers';
+
 export function validateVisitPayload(payload) {
   const errors = {};
 
@@ -46,20 +52,35 @@ export function validateVisitPayload(payload) {
   }
 
   if (!payload.medicineGiven?.trim()) {
-    errors.medicineGiven = 'Medicine given is required';
+    errors.medicineGiven = 'Medicine is required';
   }
 
-  if (!payload.treatmentDoses?.trim()) {
-    errors.treatmentDoses = 'Treatment / doses is required';
+  if (!payload.doseAmount?.trim()) {
+    errors.dose = 'Dose amount is required';
   }
 
-  const schedule = payload.schedule || {};
-  if (!schedule.morning && !schedule.afternoon && !schedule.night) {
-    errors.schedule = 'Select at least one time: Morning, Afternoon, or Night';
+  if (!payload.doseUnit?.trim()) {
+    errors.dose = 'Dose unit is required';
+  }
+
+  if (
+    payload.schedulePreset !== SCHEDULE_PRESETS.AS_NEEDED &&
+    !hasAnyScheduleSlot(payload.schedule)
+  ) {
+    errors.schedule = 'Select when to give medicine, or choose As needed (SOS)';
+  }
+
+  if (!payload.foodTiming) {
+    errors.foodTiming = 'Select before/after food option';
   }
 
   return {
     valid: Object.keys(errors).length === 0,
     errors,
   };
+}
+
+export function buildTreatmentDoses(payload) {
+  if (payload.treatmentDoses?.trim()) return payload.treatmentDoses.trim();
+  return formatDoseDisplay(payload.doseAmount, payload.doseUnit);
 }

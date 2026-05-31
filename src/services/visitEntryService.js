@@ -1,9 +1,12 @@
-import { SCHOOL_ID } from '../utils/constants';
+import { buildTreatmentDoses } from '../utils/validators';
+import { parseIssueSelection } from '../utils/issueHelpers';
+import { ISSUE_CHIPS } from '../utils/constants';
 
 export function createVisitEntryService(
   studentService,
   healthRecordService,
-  medicineService
+  medicineService,
+  medicineCatalogService
 ) {
   return {
     async saveVisit(payload) {
@@ -29,21 +32,38 @@ export function createVisitEntryService(
         severity: payload.severity,
         visitDate: payload.visitDate,
         treatedBy: payload.treatedBy?.trim() || '',
-        notes: payload.notes?.trim() || '',
+        notes: payload.recordNotes?.trim() || '',
         temperature: payload.temperature || '',
         bloodPressure: payload.bloodPressure || '',
         oxygenLevel: payload.oxygenLevel || '',
       });
 
+      const treatmentDoses = buildTreatmentDoses(payload);
+
       const medicine = await medicineService.create({
         studentId: student.localId,
         healthRecordId: healthRecord.localId,
         medicineGiven: payload.medicineGiven.trim(),
-        treatmentDoses: payload.treatmentDoses.trim(),
+        treatmentDoses,
+        doseAmount: payload.doseAmount?.trim() || '',
+        doseUnit: payload.doseUnit || '',
+        foodTiming: payload.foodTiming || '',
         schedule: payload.schedule,
-        ingestionNotes: payload.ingestionNotes?.trim() || '',
+        schedulePreset: payload.schedulePreset || 'custom',
+        medicineNotes: payload.medicineNotes?.trim() || '',
+        ingestionNotes: payload.medicineNotes?.trim() || '',
         startDate: payload.visitDate,
         endDate: payload.endDate || '',
+      });
+
+      const issueTypes = parseIssueSelection(payload.issueType, ISSUE_CHIPS);
+      await medicineCatalogService.recordUsage({
+        medicineGiven: payload.medicineGiven,
+        doseAmount: payload.doseAmount,
+        doseUnit: payload.doseUnit,
+        foodTiming: payload.foodTiming,
+        schedule: payload.schedule,
+        issueTypes,
       });
 
       await studentService.updateHealthStatus(

@@ -3,15 +3,18 @@ import { indexedDBProvider } from './storage/IndexedDBProvider';
 import { StudentRepository } from '../repositories/StudentRepository';
 import { HealthRecordRepository } from '../repositories/HealthRecordRepository';
 import { MedicineRepository } from '../repositories/MedicineRepository';
+import { MedicineCatalogRepository } from '../repositories/MedicineCatalogRepository';
 import { SettingsRepository } from '../repositories/SettingsRepository';
 import { createStudentService } from '../services/studentService';
 import { createHealthRecordService } from '../services/healthRecordService';
 import { createMedicineService } from '../services/medicineService';
+import { createMedicineCatalogService } from '../services/medicineCatalogService';
 import { createVisitEntryService } from '../services/visitEntryService';
 import { createDashboardService } from '../services/dashboardService';
 import { createReportService } from '../services/reportService';
 import { createBackupService } from '../services/backupService';
 import { runSeedIfNeeded } from '../db/seed';
+import { runCatalogSeedIfNeeded } from '../db/catalogSeed';
 import { SJM_IMAGES } from '../utils/branding';
 
 const StorageContext = createContext(null);
@@ -25,10 +28,14 @@ export function StorageProvider({ children }) {
     const studentRepository = new StudentRepository(provider);
     const healthRecordRepository = new HealthRecordRepository(provider);
     const medicineRepository = new MedicineRepository(provider);
+    const medicineCatalogRepository = new MedicineCatalogRepository(provider);
     const settingsRepository = new SettingsRepository(provider);
 
     const studentService = createStudentService(studentRepository);
     const medicineService = createMedicineService(medicineRepository);
+    const medicineCatalogService = createMedicineCatalogService(
+      medicineCatalogRepository
+    );
     const healthRecordService = createHealthRecordService(
       healthRecordRepository,
       medicineRepository,
@@ -37,7 +44,8 @@ export function StorageProvider({ children }) {
     const visitEntryService = createVisitEntryService(
       studentService,
       healthRecordService,
-      medicineService
+      medicineService,
+      medicineCatalogService
     );
     const dashboardService = createDashboardService(
       studentRepository,
@@ -56,10 +64,12 @@ export function StorageProvider({ children }) {
       studentRepository,
       healthRecordRepository,
       medicineRepository,
+      medicineCatalogRepository,
       settingsRepository,
       studentService,
       healthRecordService,
       medicineService,
+      medicineCatalogService,
       visitEntryService,
       dashboardService,
       reportService,
@@ -73,6 +83,7 @@ export function StorageProvider({ children }) {
     async function init() {
       try {
         await runSeedIfNeeded(api.provider, api.settingsRepository);
+        await runCatalogSeedIfNeeded(api.provider, api.settingsRepository);
         if (!cancelled) setReady(true);
       } catch (err) {
         if (!cancelled) setError(err.message || 'Failed to initialize database');

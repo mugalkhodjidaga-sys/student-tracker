@@ -5,6 +5,7 @@ import {
   joinIssueSelection,
 } from '../ui/MultiChipGroup';
 
+/** @deprecated Use IssueTypeSelector for 15+ issue types */
 export function IssueTypeChips({ value, onChange }) {
   const allSelected = parseIssueSelection(value, ISSUE_CHIPS);
   const chipSelected = allSelected.filter((s) => ISSUE_CHIPS.includes(s));

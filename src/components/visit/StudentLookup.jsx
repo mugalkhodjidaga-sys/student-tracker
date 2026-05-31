@@ -1,22 +1,35 @@
 import { useEffect, useState } from 'react';
 import { useStorage } from '../../providers/StorageContext';
 import { Input } from '../ui/Input';
+import { SheetsApiError } from '../../services/sheetsApiClient';
 
 export function StudentLookup({ onSelect, admissionNumber, name, onAdmissionChange, onNameChange }) {
   const { studentService } = useStorage();
   const [suggestions, setSuggestions] = useState([]);
   const [showList, setShowList] = useState(false);
+  const [lookupError, setLookupError] = useState('');
 
   useEffect(() => {
     const q = admissionNumber?.trim() || name?.trim();
     if (!q || q.length < 1) {
       setSuggestions([]);
+      setLookupError('');
       return;
     }
 
     const timer = setTimeout(async () => {
-      const results = await studentService.search(q);
-      setSuggestions(results.slice(0, 6));
+      try {
+        const results = await studentService.search(q);
+        setSuggestions(results.slice(0, 6));
+        setLookupError('');
+      } catch (err) {
+        setSuggestions([]);
+        setLookupError(
+          err instanceof SheetsApiError
+            ? err.message
+            : 'Could not search Google Sheets.'
+        );
+      }
     }, 200);
 
     return () => clearTimeout(timer);
@@ -24,8 +37,14 @@ export function StudentLookup({ onSelect, admissionNumber, name, onAdmissionChan
 
   async function handleAdmissionBlur() {
     if (!admissionNumber?.trim()) return;
-    const found = await studentService.findByAdmissionNumber(admissionNumber);
-    if (found) onSelect(found);
+    try {
+      const found = await studentService.findByAdmissionNumber(admissionNumber);
+      if (found) onSelect(found);
+    } catch (err) {
+      setLookupError(
+        err instanceof SheetsApiError ? err.message : 'Could not look up student.'
+      );
+    }
   }
 
   function pickStudent(student) {
@@ -78,6 +97,9 @@ export function StudentLookup({ onSelect, admissionNumber, name, onAdmissionChan
           </ul>
         )}
       </div>
+      {lookupError && (
+        <p className="text-sm text-urgent">{lookupError}</p>
+      )}
     </div>
   );
 }

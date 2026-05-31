@@ -57,7 +57,7 @@ export function MedicineAutocomplete({
       {showList && suggestions.length > 0 && (
         <ul className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg">
           {suggestions.map((m) => (
-            <li key={m.localId}>
+            <li key={m.localId || m.name}>
               <button
                 type="button"
                 className="w-full px-4 py-3 text-left hover:bg-emerald-50"

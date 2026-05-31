@@ -1,4 +1,5 @@
 import { CURRENT_SEED_VERSION, SEED_VERSION_KEY } from '../utils/constants';
+import { USE_SHEETS_DB } from '../config/sheetsApi';
 import { buildSeedData } from './seedData';
 
 export async function runSeedIfNeeded(provider, settingsRepo) {
@@ -7,9 +8,11 @@ export async function runSeedIfNeeded(provider, settingsRepo) {
 
   const { students, healthRecords, medicines } = buildSeedData();
 
-  await provider.bulkPut('students', students);
-  await provider.bulkPut('healthRecords', healthRecords);
-  await provider.bulkPut('medicines', medicines);
+  if (!USE_SHEETS_DB) {
+    await provider.bulkPut('students', students);
+    await provider.bulkPut('healthRecords', healthRecords);
+    await provider.bulkPut('medicines', medicines);
+  }
   await settingsRepo.set(SEED_VERSION_KEY, CURRENT_SEED_VERSION);
 
   return true;

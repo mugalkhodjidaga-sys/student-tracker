@@ -4,6 +4,35 @@ import {
   formatDoseDisplay,
 } from './medicineHelpers';
 
+function validateMedicineRow(med, index) {
+  const errors = {};
+  const prefix = `medicines.${index}`;
+
+  if (!med.medicineGiven?.trim()) {
+    errors[`${prefix}.medicineGiven`] = 'Medicine is required';
+  }
+
+  if (!med.doseAmount?.trim()) {
+    errors[`${prefix}.dose`] = 'Dose amount is required';
+  } else if (!med.doseUnit?.trim()) {
+    errors[`${prefix}.dose`] = 'Dose unit is required';
+  }
+
+  if (
+    med.schedulePreset !== SCHEDULE_PRESETS.AS_NEEDED &&
+    !hasAnyScheduleSlot(med.schedule)
+  ) {
+    errors[`${prefix}.schedule`] =
+      'Select when to give medicine, or choose As needed (SOS)';
+  }
+
+  if (!med.foodTiming) {
+    errors[`${prefix}.foodTiming`] = 'Select before/after food option';
+  }
+
+  return errors;
+}
+
 export function validateVisitPayload(payload) {
   const errors = {};
 
@@ -51,27 +80,18 @@ export function validateVisitPayload(payload) {
     errors.severity = 'Severity is required';
   }
 
-  if (!payload.medicineGiven?.trim()) {
-    errors.medicineGiven = 'Medicine is required';
-  }
+  const medicines = payload.medicines?.length
+    ? payload.medicines
+    : payload.medicineGiven
+      ? [payload]
+      : [];
 
-  if (!payload.doseAmount?.trim()) {
-    errors.dose = 'Dose amount is required';
-  }
-
-  if (!payload.doseUnit?.trim()) {
-    errors.dose = 'Dose unit is required';
-  }
-
-  if (
-    payload.schedulePreset !== SCHEDULE_PRESETS.AS_NEEDED &&
-    !hasAnyScheduleSlot(payload.schedule)
-  ) {
-    errors.schedule = 'Select when to give medicine, or choose As needed (SOS)';
-  }
-
-  if (!payload.foodTiming) {
-    errors.foodTiming = 'Select before/after food option';
+  if (!medicines.length) {
+    errors.medicines = 'Add at least one medicine';
+  } else {
+    medicines.forEach((med, index) => {
+      Object.assign(errors, validateMedicineRow(med, index));
+    });
   }
 
   return {
@@ -80,7 +100,62 @@ export function validateVisitPayload(payload) {
   };
 }
 
-export function buildTreatmentDoses(payload) {
-  if (payload.treatmentDoses?.trim()) return payload.treatmentDoses.trim();
-  return formatDoseDisplay(payload.doseAmount, payload.doseUnit);
+/** Clear a field error once the value satisfies that field's rule. */
+export function isFieldValid(field, value, form = {}) {
+  switch (field) {
+    case 'name':
+      return !!value?.trim();
+    case 'bloodGroup':
+      return !!value?.trim();
+    case 'age':
+      return value && Number(value) >= 1;
+    case 'gender':
+      return !!value;
+    case 'className':
+      return !!value?.trim();
+    case 'roomNumber':
+      return !!value?.trim();
+    case 'visitDate':
+      return !!value;
+    case 'issueType':
+      return !!value?.trim();
+    case 'symptoms':
+      return !!value?.trim();
+    case 'severity':
+      return !!value;
+    default:
+      return false;
+  }
+}
+
+export function isMedicineFieldValid(field, value, medicine = {}) {
+  switch (field) {
+    case 'medicineGiven':
+      return !!value?.trim();
+    case 'doseAmount':
+      return !!value?.trim() && !!medicine.doseUnit?.trim();
+    case 'doseUnit':
+      return !!medicine.doseAmount?.trim() && !!value?.trim();
+    case 'foodTiming':
+      return !!value;
+    case 'schedule':
+    case 'schedulePreset':
+      if (medicine.schedulePreset === SCHEDULE_PRESETS.AS_NEEDED) return true;
+      return hasAnyScheduleSlot(value ?? medicine.schedule);
+    default:
+      return false;
+  }
+}
+
+export function medicineErrorKey(index, field) {
+  if (field === 'doseAmount' || field === 'doseUnit') return `medicines.${index}.dose`;
+  if (field === 'schedule' || field === 'schedulePreset') {
+    return `medicines.${index}.schedule`;
+  }
+  return `medicines.${index}.${field}`;
+}
+
+export function buildTreatmentDoses(medicine) {
+  if (medicine.treatmentDoses?.trim()) return medicine.treatmentDoses.trim();
+  return formatDoseDisplay(medicine.doseAmount, medicine.doseUnit);
 }

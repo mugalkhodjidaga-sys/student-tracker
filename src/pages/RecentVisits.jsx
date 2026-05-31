@@ -5,6 +5,7 @@ import { SeverityBadge } from '../components/ui/SeverityBadge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { VisitDetailModal } from '../components/health/VisitDetailModal';
 import { formatDisplayDate } from '../utils/dateHelpers';
+import { formatMedicineNames } from '../utils/medicineHelpers';
 
 export function RecentVisits() {
   const { healthRecordService } = useStorage();
@@ -67,9 +68,16 @@ export function RecentVisits() {
                     <p className="mt-1 text-sm text-slate-500 line-clamp-2">
                       {v.symptoms}
                     </p>
-                    {v.medicine && (
+                    {(v.medicines?.length > 0 || v.medicine) && (
                       <p className="mt-1 text-sm font-medium text-slate-700">
-                        {v.medicine.medicineGiven}
+                        {formatMedicineNames(
+                          v.medicines?.length ? v.medicines : [v.medicine]
+                        )}
+                      </p>
+                    )}
+                    {v.attachments?.length > 0 && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        📷 {v.attachments.length} photo{v.attachments.length > 1 ? 's' : ''}
                       </p>
                     )}
                   </div>

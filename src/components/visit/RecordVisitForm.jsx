@@ -5,6 +5,11 @@ import {
   GENDER_OPTIONS,
   SEVERITY_OPTIONS,
 } from '../../utils/constants';
+import {
+  isFieldValid,
+  isMedicineFieldValid,
+  medicineErrorKey,
+} from '../../utils/validators';
 import { SchoolBranding } from '../layout/SchoolBranding';
 import { toDateInputValue } from '../../utils/dateHelpers';
 import { useVisitEntry } from '../../hooks/useVisitEntry';
@@ -20,8 +25,9 @@ import { VisitHistoryPanel } from './VisitHistoryPanel';
 import { IssueTypeSelector } from './IssueTypeSelector';
 import {
   TreatmentSection,
-  emptyTreatmentFields,
+  emptyMedicineRow,
 } from '../medicine/TreatmentSection';
+import { PhotoCapture, emptyPendingPhotos } from '../photos/PhotoCapture';
 
 const emptyForm = () => ({
   localId: null,
@@ -39,15 +45,18 @@ const emptyForm = () => ({
   issueType: '',
   symptoms: '',
   severity: 'Normal',
-  ...emptyTreatmentFields(),
+  medicines: [emptyMedicineRow()],
+  treatedBy: '',
   recordNotes: '',
   temperature: '',
   bloodPressure: '',
   oxygenLevel: '',
+  pendingPhotos: emptyPendingPhotos(),
 });
 
 export function RecordVisitForm() {
-  const { submit, loading, errors, success, resetSuccess } = useVisitEntry();
+  const { submit, loading, errors, success, resetSuccess, clearError, clearErrors } =
+    useVisitEntry();
   const [form, setForm] = useState(emptyForm);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -60,6 +69,49 @@ export function RecordVisitForm() {
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field] && isFieldValid(field, value, form)) {
+      clearError(field);
+    }
+  }
+
+  function updateMedicine(index, field, value) {
+    setForm((prev) => {
+      const medicines = [...prev.medicines];
+      medicines[index] = { ...medicines[index], [field]: value };
+      return { ...prev, medicines };
+    });
+
+    const medicine = form.medicines[index];
+    const nextMedicine = { ...medicine, [field]: value };
+    const errorKey = medicineErrorKey(index, field);
+
+    if (errors[errorKey] && isMedicineFieldValid(field, value, nextMedicine)) {
+      clearError(errorKey);
+    }
+    if (errors.medicines) {
+      clearError('medicines');
+    }
+  }
+
+  function addMedicine() {
+    setForm((prev) => ({
+      ...prev,
+      medicines: [...prev.medicines, emptyMedicineRow()],
+    }));
+    if (errors.medicines) clearError('medicines');
+  }
+
+  function removeMedicine(index) {
+    setForm((prev) => {
+      if (prev.medicines.length <= 1) return prev;
+      return {
+        ...prev,
+        medicines: prev.medicines.filter((_, i) => i !== index),
+      };
+    });
+    clearErrors(
+      Object.keys(errors).filter((key) => key.startsWith(`medicines.${index}.`))
+    );
   }
 
   function handleSelectStudent(student) {
@@ -79,9 +131,21 @@ export function RecordVisitForm() {
       guardianName: student.guardianName || '',
       guardianPhone: student.guardianPhone || '',
     }));
+    if (errors.name && student.name?.trim()) clearError('name');
+  }
+
+  function revokePhotoUrls(photoList) {
+    photoList.forEach((p) => {
+      if (p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+    });
+  }
+
+  function setPendingPhotos(photos) {
+    setForm((prev) => ({ ...prev, pendingPhotos: photos }));
   }
 
   function handleClearStudent() {
+    revokePhotoUrls(form.pendingPhotos || []);
     setSelectedStudent(null);
     setEditMode(false);
     setForm(emptyForm());
@@ -284,7 +348,27 @@ export function RecordVisitForm() {
       </Card>
 
       <Card title="3. Treatment">
-        <TreatmentSection form={form} update={update} errors={errors} />
+        <TreatmentSection
+          medicines={form.medicines}
+          issueType={form.issueType}
+          treatedBy={form.treatedBy}
+          onUpdateMedicine={updateMedicine}
+          onAddMedicine={addMedicine}
+          onRemoveMedicine={removeMedicine}
+          onTreatedByChange={(v) => update('treatedBy', v)}
+          errors={errors}
+        />
+      </Card>
+
+      <Card title="4. Reference photos (optional)">
+        <p className="mb-3 text-sm text-slate-600">
+          Capture injury, wound, or condition for doctor reference. Stored in Google Drive when signed in.
+        </p>
+        <PhotoCapture
+          photos={form.pendingPhotos}
+          onChange={setPendingPhotos}
+          disabled={loading}
+        />
       </Card>
 
       {errors.form && (

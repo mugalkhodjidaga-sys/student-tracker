@@ -6,7 +6,8 @@ export function createVisitEntryService(
   studentService,
   healthRecordService,
   medicineService,
-  medicineCatalogService
+  medicineCatalogService,
+  attachmentService
 ) {
   return {
     async saveVisit(payload) {
@@ -38,32 +39,52 @@ export function createVisitEntryService(
         oxygenLevel: payload.oxygenLevel || '',
       });
 
-      const treatmentDoses = buildTreatmentDoses(payload);
-
-      const medicine = await medicineService.create({
-        studentId: student.localId,
-        healthRecordId: healthRecord.localId,
-        medicineGiven: payload.medicineGiven.trim(),
-        treatmentDoses,
-        doseAmount: payload.doseAmount?.trim() || '',
-        doseUnit: payload.doseUnit || '',
-        foodTiming: payload.foodTiming || '',
-        schedule: payload.schedule,
-        schedulePreset: payload.schedulePreset || 'custom',
-        medicineNotes: payload.medicineNotes?.trim() || '',
-        ingestionNotes: payload.medicineNotes?.trim() || '',
-        startDate: payload.visitDate,
-        endDate: payload.endDate || '',
-      });
+      const medicineRows = payload.medicines?.length
+        ? payload.medicines
+        : [payload];
 
       const issueTypes = parseIssueSelection(payload.issueType, ISSUE_CHIPS);
-      await medicineCatalogService.recordUsage({
-        medicineGiven: payload.medicineGiven,
-        doseAmount: payload.doseAmount,
-        doseUnit: payload.doseUnit,
-        foodTiming: payload.foodTiming,
-        schedule: payload.schedule,
-        issueTypes,
+      const savedMedicines = [];
+
+      for (const row of medicineRows) {
+        const treatmentDoses = buildTreatmentDoses(row);
+
+        const medicine = await medicineService.create({
+          studentId: student.localId,
+          healthRecordId: healthRecord.localId,
+          medicineGiven: row.medicineGiven.trim(),
+          treatmentDoses,
+          doseAmount: row.doseAmount?.trim() || '',
+          doseUnit: row.doseUnit || '',
+          foodTiming: row.foodTiming || '',
+          schedule: row.schedule,
+          schedulePreset: row.schedulePreset || 'custom',
+          medicineNotes: row.medicineNotes?.trim() || '',
+          ingestionNotes: row.medicineNotes?.trim() || '',
+          startDate: payload.visitDate,
+          endDate: payload.endDate || '',
+        });
+
+        savedMedicines.push(medicine);
+
+        await medicineCatalogService.recordUsage({
+          medicineGiven: row.medicineGiven,
+          doseAmount: row.doseAmount,
+          doseUnit: row.doseUnit,
+          foodTiming: row.foodTiming,
+          schedule: row.schedule,
+          issueTypes,
+        });
+      }
+
+      const attachments = await attachmentService.saveForVisit({
+        healthRecordId: healthRecord.localId,
+        studentId: student.localId,
+        admissionNumber: student.admissionNumber,
+        studentName: student.name,
+        visitDate: payload.visitDate,
+        photos: payload.pendingPhotos || [],
+        accessToken: payload.accessToken || null,
       });
 
       await studentService.updateHealthStatus(
@@ -71,7 +92,7 @@ export function createVisitEntryService(
         payload.severity
       );
 
-      return { student, healthRecord, medicine };
+      return { student, healthRecord, medicines: savedMedicines, attachments };
     },
   };
 }

@@ -1,93 +1,181 @@
 import { useStorage } from '../../providers/StorageContext';
 import { FOOD_TIMING, SCHEDULE_PRESETS } from '../../utils/constants';
-import { SCHEDULE_PRESET_MAP, formatDoseDisplay, detectSchedulePreset } from '../../utils/medicineHelpers';
+import {
+  SCHEDULE_PRESET_MAP,
+  formatDoseDisplay,
+  detectSchedulePreset,
+} from '../../utils/medicineHelpers';
 import { MedicineAutocomplete } from './MedicineAutocomplete';
 import { DoseInput } from './DoseInput';
 import { FoodTimingChips } from './FoodTimingChips';
 import { SchedulePicker } from './SchedulePicker';
 import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
 
-export function TreatmentSection({ form, update, errors }) {
-  const { medicineCatalogService } = useStorage();
+function newMedicineId() {
+  return globalThis.crypto?.randomUUID?.() ?? `med-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
-  async function handleCatalogSelect(item) {
-    const defaults = await medicineCatalogService.applyCatalogDefaults(item);
-    if (!defaults) return;
-    update('medicineGiven', defaults.medicineGiven);
-    update('doseAmount', defaults.doseAmount);
-    update('doseUnit', defaults.doseUnit);
-    update('foodTiming', defaults.foodTiming);
-    update('schedule', defaults.schedule);
-    update('schedulePreset', detectSchedulePreset(defaults.schedule));
-    update('treatmentDoses', defaults.treatmentDoses);
+function MedicineRow({
+  index,
+  medicine,
+  issueType,
+  canRemove,
+  onUpdate,
+  onRemove,
+  onSelectCatalog,
+  errors,
+}) {
+  function update(field, value) {
+    onUpdate(index, field, value);
   }
 
   function handleScheduleChange({ schedule, schedulePreset }) {
-    update('schedule', schedule);
-    update('schedulePreset', schedulePreset);
+    onUpdate(index, 'schedule', schedule);
+    onUpdate(index, 'schedulePreset', schedulePreset);
   }
 
   function handleDoseAmount(v) {
-    update('doseAmount', v);
-    update('treatmentDoses', formatDoseDisplay(v, form.doseUnit));
+    onUpdate(index, 'doseAmount', v);
+    onUpdate(index, 'treatmentDoses', formatDoseDisplay(v, medicine.doseUnit));
   }
 
   function handleDoseUnit(v) {
-    update('doseUnit', v);
-    update('treatmentDoses', formatDoseDisplay(form.doseAmount, v));
+    onUpdate(index, 'doseUnit', v);
+    onUpdate(index, 'treatmentDoses', formatDoseDisplay(medicine.doseAmount, v));
   }
 
   return (
-    <div className="space-y-4">
+    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-slate-700">
+          Medicine {index + 1}
+        </p>
+        {canRemove && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="border-urgent text-urgent hover:bg-red-50 min-h-8 px-3"
+            onClick={() => onRemove(index)}
+          >
+            Remove
+          </Button>
+        )}
+      </div>
+
       <MedicineAutocomplete
-        value={form.medicineGiven}
+        value={medicine.medicineGiven}
         onChange={(v) => update('medicineGiven', v)}
-        onSelectCatalog={handleCatalogSelect}
-        issueType={form.issueType}
+        onSelectCatalog={(item) => onSelectCatalog(index, item)}
+        issueType={issueType}
       />
-      {errors.medicineGiven && (
-        <p className="text-sm text-urgent">{errors.medicineGiven}</p>
+      {errors[`medicines.${index}.medicineGiven`] && (
+        <p className="text-sm text-urgent">
+          {errors[`medicines.${index}.medicineGiven`]}
+        </p>
       )}
 
       <DoseInput
-        doseAmount={form.doseAmount}
-        doseUnit={form.doseUnit}
+        doseAmount={medicine.doseAmount}
+        doseUnit={medicine.doseUnit}
         onAmountChange={handleDoseAmount}
         onUnitChange={handleDoseUnit}
-        error={errors.dose}
+        error={errors[`medicines.${index}.dose`]}
       />
 
       <SchedulePicker
-        schedule={form.schedule}
-        schedulePreset={form.schedulePreset}
+        schedule={medicine.schedule}
+        schedulePreset={medicine.schedulePreset}
         onChange={handleScheduleChange}
-        error={errors.schedule}
+        error={errors[`medicines.${index}.schedule`]}
       />
 
       <FoodTimingChips
-        value={form.foodTiming}
+        value={medicine.foodTiming}
         onChange={(v) => update('foodTiming', v)}
       />
+      {errors[`medicines.${index}.foodTiming`] && (
+        <p className="text-sm text-urgent">
+          {errors[`medicines.${index}.foodTiming`]}
+        </p>
+      )}
 
       <Input
         label="Extra notes (optional)"
         placeholder="e.g. only if fever above 100°F"
-        value={form.medicineNotes}
+        value={medicine.medicineNotes}
         onChange={(e) => update('medicineNotes', e.target.value)}
-      />
-
-      <Input
-        label="Treated by"
-        placeholder="Caretaker or doctor name"
-        value={form.treatedBy}
-        onChange={(e) => update('treatedBy', e.target.value)}
       />
     </div>
   );
 }
 
-export function emptyTreatmentFields() {
+export function TreatmentSection({
+  medicines,
+  issueType,
+  treatedBy,
+  onUpdateMedicine,
+  onAddMedicine,
+  onRemoveMedicine,
+  onTreatedByChange,
+  errors,
+}) {
+  const { medicineCatalogService } = useStorage();
+
+  async function handleCatalogSelect(index, item) {
+    const defaults = await medicineCatalogService.applyCatalogDefaults(item);
+    if (!defaults) return;
+    onUpdateMedicine(index, 'medicineGiven', defaults.medicineGiven);
+    onUpdateMedicine(index, 'doseAmount', defaults.doseAmount);
+    onUpdateMedicine(index, 'doseUnit', defaults.doseUnit);
+    onUpdateMedicine(index, 'foodTiming', defaults.foodTiming);
+    onUpdateMedicine(index, 'schedule', defaults.schedule);
+    onUpdateMedicine(
+      index,
+      'schedulePreset',
+      detectSchedulePreset(defaults.schedule)
+    );
+    onUpdateMedicine(index, 'treatmentDoses', defaults.treatmentDoses);
+  }
+
+  return (
+    <div className="space-y-4">
+      {medicines.map((medicine, index) => (
+        <MedicineRow
+          key={medicine.id}
+          index={index}
+          medicine={medicine}
+          issueType={issueType}
+          canRemove={medicines.length > 1}
+          onUpdate={onUpdateMedicine}
+          onRemove={onRemoveMedicine}
+          onSelectCatalog={handleCatalogSelect}
+          errors={errors}
+        />
+      ))}
+
+      {errors.medicines && (
+        <p className="text-sm text-urgent">{errors.medicines}</p>
+      )}
+
+      <Button type="button" variant="outline" className="w-full" onClick={onAddMedicine}>
+        + Add another medicine
+      </Button>
+
+      <Input
+        label="Treated by"
+        placeholder="Caretaker or doctor name"
+        value={treatedBy}
+        onChange={(e) => onTreatedByChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
+export function emptyMedicineRow() {
   return {
+    id: newMedicineId(),
     medicineGiven: '',
     doseAmount: '1',
     doseUnit: 'tablet',
@@ -96,6 +184,10 @@ export function emptyTreatmentFields() {
     schedulePreset: SCHEDULE_PRESETS.TWICE,
     foodTiming: FOOD_TIMING.AFTER_FOOD,
     medicineNotes: '',
-    treatedBy: '',
   };
+}
+
+/** @deprecated use emptyMedicineRow — kept for any legacy imports */
+export function emptyTreatmentFields() {
+  return { ...emptyMedicineRow(), treatedBy: '' };
 }

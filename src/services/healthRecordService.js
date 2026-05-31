@@ -1,19 +1,40 @@
 import { SCHOOL_ID } from '../utils/constants';
 import { formatDisplayDate } from '../utils/dateHelpers';
 
-export function createHealthRecordService(healthRepo, medicineRepo, studentRepo) {
+function attachMedicines(records, medicines) {
+  return records.map((record) => ({
+    ...record,
+    medicines: medicines.filter((m) => m.healthRecordId === record.localId),
+    medicine: medicines.find((m) => m.healthRecordId === record.localId) || null,
+  }));
+}
+
+function attachPhotos(records, attachments) {
+  return records.map((record) => ({
+    ...record,
+    attachments: attachments.filter((a) => a.healthRecordId === record.localId),
+  }));
+}
+
+export function createHealthRecordService(
+  healthRepo,
+  medicineRepo,
+  studentRepo,
+  attachmentRepo
+) {
   return {
     async getByStudent(studentId) {
       const records = await healthRepo.getByStudent(studentId);
-      const medicines = await medicineRepo.getByHealthRecords(
-        records.map((r) => r.localId)
-      );
+      const recordIds = records.map((r) => r.localId);
+      const [medicines, attachments] = await Promise.all([
+        medicineRepo.getByHealthRecords(recordIds),
+        attachmentRepo.getByHealthRecords(recordIds),
+      ]);
 
-      return records.map((record) => ({
-        ...record,
-        medicine:
-          medicines.find((m) => m.healthRecordId === record.localId) || null,
-      }));
+      return attachPhotos(
+        attachMedicines(records, medicines),
+        attachments
+      );
     },
 
     async getStudentVisitSummary(studentId) {
@@ -35,17 +56,24 @@ export function createHealthRecordService(healthRepo, medicineRepo, studentRepo)
 
     async getRecent(limit = 50) {
       const records = await healthRepo.getRecent(limit);
+      const recordIds = records.map((r) => r.localId);
       const students = await studentRepo.getAll();
       const studentMap = Object.fromEntries(
         students.map((s) => [s.localId, s])
       );
-      const medicines = await medicineRepo.getAll();
+      const [medicines, attachments] = await Promise.all([
+        medicineRepo.getAll().then((all) =>
+          all.filter((m) => recordIds.includes(m.healthRecordId))
+        ),
+        attachmentRepo.getByHealthRecords(recordIds),
+      ]);
 
-      return records.map((r) => ({
+      return attachPhotos(
+        attachMedicines(records, medicines),
+        attachments
+      ).map((r) => ({
         ...r,
         student: studentMap[r.studentId],
-        medicine:
-          medicines.find((m) => m.healthRecordId === r.localId) || null,
       }));
     },
 

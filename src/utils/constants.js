@@ -100,4 +100,4 @@ export const EMPTY_SCHEDULE = () => ({
 export const SEED_VERSION_KEY = 'seedVersion';
 export const CATALOG_SEED_VERSION_KEY = 'medicineCatalogSeedVersion';
 export const CURRENT_SEED_VERSION = '1';
-export const CURRENT_CATALOG_SEED_VERSION = '1';
+export const CURRENT_CATALOG_SEED_VERSION = '3';

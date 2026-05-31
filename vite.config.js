@@ -32,6 +32,18 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/script\.google\.com\/macros\/.*/i,
+            handler: 'NetworkOnly',
+            method: 'GET',
+          },
+          {
+            urlPattern: /^https:\/\/script\.googleusercontent\.com\/macros\/.*/i,
+            handler: 'NetworkOnly',
+            method: 'GET',
+          },
+        ],
       },
     }),
   ],

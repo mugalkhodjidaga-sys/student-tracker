@@ -80,12 +80,13 @@ export class IndexedDBProvider extends StorageProvider {
   }
 
   async exportAll() {
-    const [students, healthRecords, medicines, medicineCatalog, settings] =
+    const [students, healthRecords, medicines, medicineCatalog, attachments, settings] =
       await Promise.all([
       this.getAll(TABLES.STUDENTS),
       this.getAll(TABLES.HEALTH_RECORDS),
       this.getAll(TABLES.MEDICINES),
       this.getAll(TABLES.MEDICINE_CATALOG),
+      this.getAll(TABLES.ATTACHMENTS),
       this.getAll(TABLES.SETTINGS),
     ]);
 
@@ -95,6 +96,7 @@ export class IndexedDBProvider extends StorageProvider {
       healthRecords,
       medicines,
       medicineCatalog,
+      attachments,
       settings,
     };
   }
@@ -111,6 +113,9 @@ export class IndexedDBProvider extends StorageProvider {
     }
     if (data.medicineCatalog?.length) {
       await this.bulkPut(TABLES.MEDICINE_CATALOG, data.medicineCatalog);
+    }
+    if (data.attachments?.length) {
+      await this.bulkPut(TABLES.ATTACHMENTS, data.attachments);
     }
     if (data.settings?.length) {
       await this.bulkPut(TABLES.SETTINGS, data.settings);

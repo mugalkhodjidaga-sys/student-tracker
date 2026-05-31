@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { indexedDBProvider } from './storage/IndexedDBProvider';
 import { StudentRepository } from '../repositories/StudentRepository';
+import { SheetsStudentRepository } from '../repositories/SheetsStudentRepository';
+import { USE_SHEETS_DB } from '../config/sheetsApi';
 import { HealthRecordRepository } from '../repositories/HealthRecordRepository';
 import { MedicineRepository } from '../repositories/MedicineRepository';
+import { SheetsHealthRecordRepository } from '../repositories/SheetsHealthRecordRepository';
+import { SheetsMedicineRepository } from '../repositories/SheetsMedicineRepository';
+import { SheetsAttachmentRepository } from '../repositories/SheetsAttachmentRepository';
 import { MedicineCatalogRepository } from '../repositories/MedicineCatalogRepository';
 import { SettingsRepository } from '../repositories/SettingsRepository';
 import { createStudentService } from '../services/studentService';
@@ -12,9 +17,14 @@ import { createMedicineCatalogService } from '../services/medicineCatalogService
 import { createVisitEntryService } from '../services/visitEntryService';
 import { createDashboardService } from '../services/dashboardService';
 import { createReportService } from '../services/reportService';
+import { AttachmentRepository } from '../repositories/AttachmentRepository';
+import { createAttachmentService } from '../services/attachmentService';
+import { googleAuthService } from '../services/googleAuthService';
+import { googleDriveService } from '../services/googleDriveService';
 import { createBackupService } from '../services/backupService';
-import { runSeedIfNeeded } from '../db/seed';
 import { runCatalogSeedIfNeeded } from '../db/catalogSeed';
+import { runSeedIfNeeded } from '../db/seed';
+
 import { SJM_IMAGES } from '../utils/branding';
 
 const StorageContext = createContext(null);
@@ -25,11 +35,26 @@ export function StorageProvider({ children }) {
 
   const api = useMemo(() => {
     const provider = indexedDBProvider;
-    const studentRepository = new StudentRepository(provider);
-    const healthRecordRepository = new HealthRecordRepository(provider);
-    const medicineRepository = new MedicineRepository(provider);
+    const studentRepository = USE_SHEETS_DB
+      ? new SheetsStudentRepository()
+      : new StudentRepository(provider);
+    const healthRecordRepository = USE_SHEETS_DB
+      ? new SheetsHealthRecordRepository()
+      : new HealthRecordRepository(provider);
+    const medicineRepository = USE_SHEETS_DB
+      ? new SheetsMedicineRepository()
+      : new MedicineRepository(provider);
     const medicineCatalogRepository = new MedicineCatalogRepository(provider);
+    const attachmentRepository = USE_SHEETS_DB
+      ? new SheetsAttachmentRepository()
+      : new AttachmentRepository(provider);
     const settingsRepository = new SettingsRepository(provider);
+
+    const attachmentService = createAttachmentService(
+      attachmentRepository,
+      googleDriveService,
+      googleAuthService
+    );
 
     const studentService = createStudentService(studentRepository);
     const medicineService = createMedicineService(medicineRepository);
@@ -39,13 +64,15 @@ export function StorageProvider({ children }) {
     const healthRecordService = createHealthRecordService(
       healthRecordRepository,
       medicineRepository,
-      studentRepository
+      studentRepository,
+      attachmentRepository
     );
     const visitEntryService = createVisitEntryService(
       studentService,
       healthRecordService,
       medicineService,
-      medicineCatalogService
+      medicineCatalogService,
+      attachmentService
     );
     const dashboardService = createDashboardService(
       studentRepository,
@@ -65,11 +92,13 @@ export function StorageProvider({ children }) {
       healthRecordRepository,
       medicineRepository,
       medicineCatalogRepository,
+      attachmentRepository,
       settingsRepository,
       studentService,
       healthRecordService,
       medicineService,
       medicineCatalogService,
+      attachmentService,
       visitEntryService,
       dashboardService,
       reportService,

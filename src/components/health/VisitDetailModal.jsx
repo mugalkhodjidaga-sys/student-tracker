@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Modal } from '../ui/Modal';
 import { SeverityBadge } from '../ui/SeverityBadge';
+import { PhotoGallery } from '../photos/PhotoGallery';
+import { useStorage } from '../../providers/StorageContext';
 import { formatDisplayDate } from '../../utils/dateHelpers';
 import {
   formatScheduleDisplay,
@@ -21,15 +23,49 @@ function DetailRow({ label, value }) {
   );
 }
 
+function MedicineBlock({ med, index, total }) {
+  const dose =
+    med.doseAmount && med.doseUnit
+      ? formatDoseDisplay(med.doseAmount, med.doseUnit)
+      : med.treatmentDoses;
+
+  return (
+    <div className="rounded-xl bg-slate-50 p-3">
+      {total > 1 && (
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Medicine {index + 1}
+        </p>
+      )}
+      <DetailRow label="Medicine" value={med.medicineGiven} />
+      <DetailRow label="Dose" value={dose} />
+      <DetailRow
+        label="Schedule"
+        value={formatScheduleDisplay(normalizeSchedule(med.schedule))}
+      />
+      <DetailRow
+        label="With food"
+        value={formatFoodTiming(med.foodTiming) || med.ingestionNotes}
+      />
+      {(med.medicineNotes || med.ingestionNotes) && (
+        <DetailRow
+          label="Notes"
+          value={med.medicineNotes || med.ingestionNotes}
+        />
+      )}
+    </div>
+  );
+}
+
 export function VisitDetailModal({ visit, open, onClose }) {
+  const { attachmentService } = useStorage();
   if (!visit) return null;
 
   const student = visit.student;
-  const med = visit.medicine;
-  const dose =
-    med?.doseAmount && med?.doseUnit
-      ? formatDoseDisplay(med.doseAmount, med.doseUnit)
-      : med?.treatmentDoses;
+  const medicines = visit.medicines?.length
+    ? visit.medicines
+    : visit.medicine
+      ? [visit.medicine]
+      : [];
 
   return (
     <Modal open={open} onClose={onClose} title="Visit details" wide>
@@ -64,26 +100,31 @@ export function VisitDetailModal({ visit, open, onClose }) {
         <DetailRow label="Visit date" value={formatDisplayDate(visit.visitDate)} />
         <DetailRow label="Type of issue" value={visit.issueType} />
         <DetailRow label="Symptoms" value={visit.symptoms} />
-        {med && (
-          <>
-            <DetailRow label="Medicine" value={med.medicineGiven} />
-            <DetailRow label="Dose" value={dose} />
-            <DetailRow
-              label="Schedule"
-              value={formatScheduleDisplay(normalizeSchedule(med.schedule))}
+      </dl>
+
+      {medicines.length > 0 && (
+        <div className="my-4 space-y-3">
+          {medicines.map((med, index) => (
+            <MedicineBlock
+              key={med.localId || index}
+              med={med}
+              index={index}
+              total={medicines.length}
             />
-            <DetailRow
-              label="With food"
-              value={formatFoodTiming(med.foodTiming) || med.ingestionNotes}
-            />
-            {(med.medicineNotes || med.ingestionNotes) && (
-              <DetailRow
-                label="Notes"
-                value={med.medicineNotes || med.ingestionNotes}
-              />
-            )}
-          </>
-        )}
+          ))}
+        </div>
+      )}
+
+      {visit.attachments?.length > 0 && (
+        <div className="my-4">
+          <PhotoGallery
+            attachments={visit.attachments}
+            getDisplayUrl={(a) => attachmentService.getDisplayUrl(a)}
+          />
+        </div>
+      )}
+
+      <dl>
         <DetailRow label="Treated by" value={visit.treatedBy} />
         {visit.temperature && (
           <DetailRow label="Temperature" value={visit.temperature} />

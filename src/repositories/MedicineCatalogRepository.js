@@ -11,7 +11,23 @@ export class MedicineCatalogRepository extends BaseRepository {
     const normalized = normalizeName(name);
     if (!normalized) return null;
     const items = await this.getAll();
-    return items.find((m) => normalizeName(m.name) === normalized) || null;
+    const matches = items.filter((m) => normalizeName(m.name) === normalized);
+    if (!matches.length) return null;
+    return matches.sort((a, b) => (b.useCount || 0) - (a.useCount || 0))[0];
+  }
+
+  /** One entry per medicine name — keeps highest useCount when duplicates exist. */
+  dedupeByName(items) {
+    const byName = new Map();
+    for (const item of items) {
+      const key = normalizeName(item.name);
+      if (!key) continue;
+      const existing = byName.get(key);
+      if (!existing || (item.useCount || 0) > (existing.useCount || 0)) {
+        byName.set(key, item);
+      }
+    }
+    return [...byName.values()];
   }
 
   async search(query, issueTypes = []) {
@@ -19,7 +35,7 @@ export class MedicineCatalogRepository extends BaseRepository {
     let items = await this.getAll();
 
     if (issueTypes.length > 0) {
-      const selected = new Set(issueTypes.map((t) => t.trim().toLowerCase()));
+      const selected = new Set(issueTypes.map((t) => t.toLowerCase()));
       items = items.filter((m) =>
         m.issueTypes?.some((t) => selected.has(t.toLowerCase()))
       );
@@ -28,6 +44,8 @@ export class MedicineCatalogRepository extends BaseRepository {
     if (q) {
       items = items.filter((m) => m.name.toLowerCase().includes(q));
     }
+
+    items = this.dedupeByName(items);
 
     return items.sort((a, b) => (b.useCount || 0) - (a.useCount || 0));
   }

@@ -52,6 +52,16 @@ export function buildTreatmentSummary(med) {
   return parts.filter(Boolean).join(' · ');
 }
 
+export function buildMedicinesSummary(medicines = []) {
+  if (!medicines.length) return '';
+  return medicines.map((med) => buildTreatmentSummary(med)).filter(Boolean).join('; ');
+}
+
+export function formatMedicineNames(medicines = []) {
+  if (!medicines.length) return '';
+  return medicines.map((m) => m.medicineGiven).filter(Boolean).join(', ');
+}
+
 export const SCHEDULE_PRESET_MAP = {
   once_morning: { morning: true, noon: false, evening: false, night: false },
   twice_daily: { morning: true, noon: false, evening: true, night: false },
